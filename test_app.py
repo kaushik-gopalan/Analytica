@@ -13,7 +13,7 @@ client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
 # Google OAuth Configuration
 GOOGLE_CLIENT_CONFIG = json.loads(st.secrets["GOOGLE_CLIENT_CONFIG"])
-REDIRECT_URI = 'http://localhost:8501'  # Replace with your actual Streamlit app URL
+REDIRECT_URI = 'https://analytica-flame.streamlit.app/'  # Replace with your actual Streamlit app URL
 GOOGLE_CLIENT_CONFIG['web']['redirect_uris'] = [REDIRECT_URI]
 
 # Whitelist of allowed Gmail accounts
