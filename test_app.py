@@ -45,7 +45,7 @@ def get_user_info(credentials):
 def create_assistant(file_ids):
     assistant = client.beta.assistants.create(
         name="Analytica: Data Assistant",
-        instructions="You are a custom Data Analysis assistant designed to perform data analysis tasks on uploaded xlsx files. Base all responses strictly on the data from these files, providing concise and direct answers without showing code or giving explanations. Do not generate any data that isn't explicitly found in the files. Make the Python queries robust: Handle variations in user terminology like Math/Maths, US/USA, Delhi/New Delhi, Mumbai/Bombay etc.",
+        instructions="You are a custom Data Analysis assistant designed to perform data analysis tasks on uploaded xlsx files. The file Students.xlsx contains information about students and Faculty.xlsx contains information about faculty. Base all responses strictly on the data from these files, providing concise and direct answers without showing code or giving explanations. Do not generate any data that isn't explicitly found in the files. Make the Python queries robust: Handle variations in user terminology like Math/Maths, US/USA, Delhi/New Delhi, Mumbai/Bombay etc.",
         model="gpt-4o",
         tools=[{"type": "code_interpreter"}],
         tool_resources={
@@ -84,9 +84,24 @@ def process_question(assistant_id, thread_id, user_question):
     messages = client.beta.threads.messages.list(thread_id=thread_id)
     return messages.data[0].content[0].text.value
 
-
 # Streamlit app
-st.title("Analytica: Data Assistant")
+st.set_page_config(layout="wide")
+
+# Create two columns for the title and logout button
+col1, col2 = st.columns([4, 1])
+
+# Add title to the left column
+with col1:
+    st.title("Analytica: Data Assistant")
+
+# Add logout button to the right column
+with col2:
+    if 'credentials' in st.session_state:
+        if st.button("Logout", key="logout_button"):
+            del st.session_state.credentials
+            if 'chat_history' in st.session_state:
+                del st.session_state.chat_history
+            st.rerun()
 
 # Check for OAuth callback
 if 'code' in st.query_params:
@@ -154,22 +169,32 @@ else:
             else:
                 st.error("No XLSX files found in the specified directory.")
 
+        # Initialize chat history
+        if 'chat_history' not in st.session_state:
+            st.session_state.chat_history = []
+
+        # Display chat history
+        for message in st.session_state.chat_history:
+            with st.chat_message(message["role"]):
+                st.write(message["content"])
+
         # User input for questions
-        user_question = st.text_input("Ask a question about the data:")
+        user_question = st.chat_input("Ask a question about the data:")
 
         if user_question:
-            with st.spinner("Processing your question..."):
-                response = process_question(st.session_state.assistant.id, st.session_state.thread_id, user_question)
-            
-            st.write("Assistant's response:")
-            st.write(response)
+            # Add user question to chat history
+            st.session_state.chat_history.append({"role": "user", "content": user_question})
 
-        # Logout button
-        if st.button("Logout"):
-            del st.session_state.credentials
-            st.rerun()
+            with st.chat_message("user"):
+                st.write(user_question)
+
+            with st.chat_message("assistant"):
+                with st.spinner("Processing your question..."):
+                    response = process_question(st.session_state.assistant.id, st.session_state.thread_id, user_question)
+                st.write(response)
+
+            # Add assistant response to chat history
+            st.session_state.chat_history.append({"role": "assistant", "content": response})
+
     else:
         st.error("You are not authorized to use this application.")
-        if st.button("Logout"):
-            del st.session_state.credentials
-            st.rerun()
