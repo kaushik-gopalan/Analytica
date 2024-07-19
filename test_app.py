@@ -20,6 +20,9 @@ GOOGLE_CLIENT_CONFIG['web']['redirect_uris'] = [REDIRECT_URI]
 ALLOWED_EMAILS = [
     "kaushik.gopalan@flame.edu.in",
     "krutarth@flame.edu.in",
+    "rishav.jain@flame.edu.in",
+    "ansh.kushwaha@flame.edu.in",
+    "shagun.dwivedi@flame.edu.in"
     # Add more allowed email addresses here
 ]
 
